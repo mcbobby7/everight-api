@@ -165,27 +165,25 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
   var mailer = nodemailer.createTransport(sgTransport(options)); 
       
       try {
-          // userData = await 
-          // let userData = fetch('http://localhost:9200/api/Users/generateUsers').then(res => res.json()).then(function(data) {
-          //   returned = data.json();
-          //   console.log(returned);  //expecting array
-          // });
+        if(!messageId || !userData || !senderName){
+          res.json({isSuccessful: false, hasError: 'Check what you are sending please'});
+        } else {
           let pool = await mssql.connect(sqlConfig);
-          let messageTemp = await pool.request().query(`select Body from [dbo].[MessageTemplates] where Id = ${messageId}`);
+          let messageTemp = await pool.request().query(`select * from [dbo].[MessageTemplates] where Id = ${messageId}`);
+          let messageContent = messageTemp.recordset[0].Body;
+          console.log('See your message template:', messageTemp)
           for(let i = 0; i < userData.length; i++){
             let name = userData[i].name;
             let age = userData[i].age;
             let gender  = userData[i].gender;
   
-            let message = messageTemp.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender)
-            console.log('Here is your message body:',message);
-
+            messageContent = messageContent.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender);
             var email = {
-              to: [record[i].EmailAddress],
+              to: [userData[i].EmailAddress],
               from: senderName,
-              subject: message.recordset[0].Title,
-              text: message.recordset[0].Body,
-              html: '<h5>Happy Birthdaty</h5>'
+              subject: messageTemp.recordset[0].Title,
+              text: messageContent,
+              html: `<h5>${messageTemp.recordset[0].Title}</h5>`
           }; 
 
           // console.log('Messagers a',allTemplates.recordset[0])
@@ -194,32 +192,19 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
               if (err) { 
                   console.log(err) 
               }
-              console.log('email sent to', record[i].EmailAddress);
+              console.log('email sent to', userData[i].EmailAddress);
              
           });
   
-          }
- 
-          //Call an endpoint to return the generatedUsers
-          // let result = await pool.request().query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
-          // WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
-          // BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(DAY, 1, GETDATE())-1 AS DATE)`);
-          // console.log(result);
-          // res.json(result);
-          // mssql.close;
+          }       
   
-          // let record = result.recordset;
-  
-         
-                  
-  
-            for(let i = 0; i< record.length; i++){
+            for(let i = 0; i< userData.length; i++){
              
             }
   
           res.json({isSuccessful: true})
            
-          
+        } 
         
       } catch (error) {
         console.log(error.message);

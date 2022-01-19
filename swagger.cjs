@@ -18,7 +18,8 @@ module.exports = {
 
   servers: [
     {
-      url: "http://localhost:9200", // url
+      // url: "http://localhost:9200",
+      url: "https://mighty-citadel-36380.herokuapp.com/",
       description: "Local server", // name
     },
   ],
