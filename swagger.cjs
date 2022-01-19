@@ -71,7 +71,7 @@ module.exports = {
         type: "object", // data type
         properties: {
           templateId: {
-            type: "interger", // data-type
+            type: "number", // data-type
             format: "int32",
             description: "message to be sent", // desc
           },
