@@ -1,0 +1,32 @@
+{
+  "name": "express",
+  "version": "1.0.0",
+  "description": "Lotus notification app",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon -e cjs js mjs  app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "africastalking": "^0.5.4",
+    "body-parser": "^1.19.0",
+    "cjs-module-lexer": "^1.2.2",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-async-handler": "^1.2.0",
+    "joi": "^17.4.2",
+    "moment": "^2.29.1",
+    "mssql": "^7.2.1",
+    "node-schedule": "^2.0.0",
+    "node-windows": "^1.0.0-beta.6",
+    "nodemailer": "^6.7.0",
+    "nodemailer-sendgrid-transport": "^0.2.0",
+    "nodemon": "^2.0.15",
+    "path": "^0.12.7",
+    "swagger-ui-express": "^4.3.0"
+  }
+}

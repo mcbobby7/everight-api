@@ -1,0 +1,121 @@
+Server running in undefined mode on port 9000
+ConnectionPool {
+  _events: [Object: null prototype] { error: [Function (anonymous)] },
+  _eventsCount: 1,
+  _maxListeners: undefined,
+  _connectStack: [],
+  _closeStack: [],
+  _connected: true,
+  _connecting: false,
+  _healthy: true,
+  config: {
+    user: 'superdbuser',
+    password: 'J@p@n123',
+    database: 'hmsdb',
+    server: 'mssql-35101-0.cloudclusters.net',
+    port: 35101,
+    pool: { max: 10, min: 0, idleTimeoutMillis: 30000 },
+    options: { encrypt: true, trustServerCertificate: true },
+    stream: false,
+    parseJSON: false,
+    arrayRowMode: false,
+    validateConnection: true
+  },
+  close: [Function: bound globalClose],
+  pool: Pool {
+    destroyed: false,
+    emitter: EventEmitter {
+      _events: [Object: null prototype] {},
+      _eventsCount: 0,
+      _maxListeners: undefined,
+      [Symbol(kCapture)]: false
+    },
+    creator: [Function: create],
+    destroyer: [Function: bound _poolDestroy],
+    validate: [Function: bound _poolValidate],
+    log: [Function (anonymous)],
+    acquireTimeoutMillis: 30000,
+    createTimeoutMillis: 30000,
+    destroyTimeoutMillis: 5000,
+    idleTimeoutMillis: 30000,
+    reapIntervalMillis: 1000,
+    createRetryIntervalMillis: 200,
+    propagateCreateError: true,
+    min: 0,
+    max: 10,
+    used: [],
+    free: [],
+    pendingCreates: [],
+    pendingAcquires: [],
+    pendingDestroys: [],
+    pendingValidations: [],
+    interval: null,
+    eventId: 1
+  },
+  [Symbol(kCapture)]: false
+}
+connected now!
+{ recordsets: [ [] ], recordset: [], output: {}, rowsAffected: [ 0 ] }
+{
+  recordsets: [ [ [Object], [Object], [Object], [Object] ] ],
+  recordset: [
+    {
+      Id: 1,
+      Title: 'Birthday',
+      Body: 'Happy birthday to you. We wish you the best'
+    },
+    {
+      Id: 6,
+      Title: 'Appointment',
+      Body: 'Dear Patient,\n' +
+        'You have an appointment with Dr. who on 10/12/2021\n' +
+        'Regards'
+    },
+    { Id: 7, Title: 'Happy', Body: 'Happy' },
+    { Id: 8, Title: 'string', Body: 'undefined' }
+  ],
+  output: {},
+  rowsAffected: [ 4 ]
+}
+{
+  recordsets: [ [ [Object], [Object], [Object], [Object] ] ],
+  recordset: [
+    {
+      Id: 1,
+      Title: 'Birthday',
+      Body: 'Happy birthday to you. We wish you the best'
+    },
+    {
+      Id: 6,
+      Title: 'Appointment',
+      Body: 'Dear Patient,\n' +
+        'You have an appointment with Dr. who on 10/12/2021\n' +
+        'Regards'
+    },
+    { Id: 7, Title: 'Happy', Body: 'Happy' },
+    { Id: 8, Title: 'string', Body: 'undefined' }
+  ],
+  output: {},
+  rowsAffected: [ 4 ]
+}
+{
+  recordsets: [ [ [Object], [Object], [Object], [Object] ] ],
+  recordset: [
+    {
+      Id: 1,
+      Title: 'Birthday',
+      Body: 'Happy birthday to you. We wish you the best'
+    },
+    {
+      Id: 6,
+      Title: 'Appointment',
+      Body: 'Dear Patient,\n' +
+        'You have an appointment with Dr. who on 10/12/2021\n' +
+        'Regards'
+    },
+    { Id: 7, Title: 'Happy', Body: 'Happy' },
+    { Id: 8, Title: 'string', Body: 'undefined' }
+  ],
+  output: {},
+  rowsAffected: [ 4 ]
+}
