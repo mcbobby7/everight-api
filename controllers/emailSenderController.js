@@ -155,7 +155,7 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
 
   const sendMailNow = asyncHandler(async (req, res) => {
     let messageId = req.body.templateId;
-    let userData = req.body.UsersData;
+    let userData = JSON.parse(req.body.UsersData);
     let senderName = req.body.senderName;
     var options = {
       auth: {
