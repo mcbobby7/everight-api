@@ -88,6 +88,7 @@ const updateTemplate =  asyncHandler(async (req, res) => {
     res.json(result);
     mssql.close;
   } catch (error) {
+    res.json({isSuccessful: false, hasError: 'Something happened'})
     console.log(error.message);
     mssql.close;
   }
@@ -148,6 +149,7 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
         
       
     } catch (error) {
+      res.json({isSuccessful: false, hasError: 'Something happened'})
       console.log(error.message);
       mssql.close;
     }
@@ -207,6 +209,7 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
         } 
         
       } catch (error) {
+        res.json({isSuccessful: false, hasError: 'Something happened'})
         console.log(error.message);
         mssql.close;
       }
@@ -319,6 +322,7 @@ const saveTemplate = asyncHandler(async (req, res) => {
     res.json({hasError: false, message: 'Record saved sucessfully'})
   }
   catch (error) {
+    res.json({isSuccessful: false, hasError: 'Something happened'})
     console.log(error.message);
     mssql.close;
 
