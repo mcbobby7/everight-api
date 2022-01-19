@@ -172,7 +172,7 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
           // });
           let pool = await mssql.connect(sqlConfig);
           let messageTemp = await pool.request().query(`select Body from [dbo].[MessageTemplates] where Id = ${messageId}`);
-          for(i = 0; i < userData.length; i++){
+          for(let i = 0; i < userData.length; i++){
             let name = userData[i].name;
             let age = userData[i].age;
             let gender  = userData[i].gender;
