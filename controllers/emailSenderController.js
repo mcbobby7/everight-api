@@ -157,8 +157,8 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
 
   const sendMailNow = asyncHandler(async (req, res) => {
     let messageId = req.body.templateId;
-    // let userData = JSON.parse(req.body.UsersData);
-    let userData = req.body.UsersData;
+    let userData = JSON.parse(req.body.UsersData);
+    // let userData = req.body.UsersData;
     let senderName = req.body.senderName;
 
     console.log('Here is your data',userData)
@@ -184,31 +184,29 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
               let gender  = userData[i].gender;
     
               messageContent = messageContent.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender);
-              let email = {
+              var email = {
                 to: [userData[i].EmailAddress],
-                from: senderName,
+                from: "philipmuyiwa@gmail.com",
                 subject: messageTemp.recordset[0].Title,
                 text: messageContent,
                 html: `<h5>${messageTemp.recordset[0].Title}</h5>`
             }
+
+              mailer.sendMail(email, function(err, res) {
+                if (err) { 
+                    console.log(err) 
+                }
+                else console.log('email sent to', userData[i].EmailAddress);
+              
+              });
           }; 
 
           // console.log('Messagers a',allTemplates.recordset[0])
 
-          mailer.sendMail(email, function(err, res) {
-              if (err) { 
-                  console.log(err) 
-              }
-              console.log('email sent to', userData[i].EmailAddress);
-             
-          });
+         
   
           }       
-  
-            for(let i = 0; i< userData.length; i++){
-             
-            }
-  
+   
           res.json({isSuccessful: true})
            
         } 
