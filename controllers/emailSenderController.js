@@ -282,6 +282,7 @@ const sendSMSNow = asyncHandler(async (req, res) => {
   mssql.close;
     // create const options with fields to and message
     for(let i = 0; i< userData.length; i++){
+      if(userData[i].PhoneNumber){
       let name = userData[i].name;
       let age = userData[i].age;
       let gender  = userData[i].gender;
@@ -305,9 +306,10 @@ const sendSMSNow = asyncHandler(async (req, res) => {
         });
         console.log('SMS sent to', PhoneNumber);
     } 
+  }
 
-    res.json(record);
-    // res.json({isSuccessful: true})
+    // res.json(record);
+    res.json({isSuccessful: true})
     // That's it. AT will then send your SMSs to your Simulators
     
   // })
