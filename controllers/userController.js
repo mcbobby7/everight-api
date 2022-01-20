@@ -107,6 +107,10 @@ const allUsers = asyncHandler(async (req, res) => {
     // DateOfBirth > ${minYearOfBirth} AND DateOfBirth < ${maxYearOfBirth} AND Gender = ${gender} AND RegisteredOn > ${startDate} AND RegisteredOn < ${endDate}`
 
     try {
+
+      if(!minAge && !maxAge && !gender && !startDate && !endDate){
+        res.json({isSuccessful: false, hasError: 'No paramter passed'})
+      } else {
       let pool = await mssql.connect(sqlConfig);
       let paramVal = [];
       if(minAge){
@@ -166,7 +170,7 @@ const allUsers = asyncHandler(async (req, res) => {
       let result = await pool.request().query(`SELECT * FROM [dbo].[vwPatientDOBInfo] where ${newVar}`);
       res.json(result);
       mssql.close;
-      
+      }  
     } catch (error) {
       console.log('See the error',error.message);
       mssql.close;

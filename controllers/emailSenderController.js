@@ -157,8 +157,11 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
 
   const sendMailNow = asyncHandler(async (req, res) => {
     let messageId = req.body.templateId;
-    let userData = JSON.parse(req.body.UsersData);
+    // let userData = JSON.parse(req.body.UsersData);
+    let userData = req.body.UsersData;
     let senderName = req.body.senderName;
+
+    console.log('Here is your data',userData)
     var options = {
       auth: {
           api_key: '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'
@@ -175,17 +178,19 @@ const celebrantsDayMail = asyncHandler(async (req, res) => {
           let messageContent = messageTemp.recordset[0].Body;
           console.log('See your message template:', messageTemp)
           for(let i = 0; i < userData.length; i++){
-            let name = userData[i].name;
-            let age = userData[i].age;
-            let gender  = userData[i].gender;
-  
-            messageContent = messageContent.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender);
-            var email = {
-              to: [userData[i].EmailAddress],
-              from: senderName,
-              subject: messageTemp.recordset[0].Title,
-              text: messageContent,
-              html: `<h5>${messageTemp.recordset[0].Title}</h5>`
+            if(userData[i].EmailAddress){
+              let name = userData[i].name;
+              let age = userData[i].age;
+              let gender  = userData[i].gender;
+    
+              messageContent = messageContent.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender);
+              let email = {
+                to: [userData[i].EmailAddress],
+                from: senderName,
+                subject: messageTemp.recordset[0].Title,
+                text: messageContent,
+                html: `<h5>${messageTemp.recordset[0].Title}</h5>`
+            }
           }; 
 
           // console.log('Messagers a',allTemplates.recordset[0])
