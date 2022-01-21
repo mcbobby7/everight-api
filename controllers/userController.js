@@ -138,7 +138,7 @@ const allUsers = asyncHandler(async (req, res) => {
               newVar = newVar + `DateOfBirth <= '${paramVal[i]}'`;
             }
             else if(paramVal[i] == gender) {
-              newVar = newVar + `Gender >= '${paramVal[i]}'`;
+              newVar = newVar + `Gender = '${paramVal[i]}'`;
             }
             else if(paramVal[i] == startDate) {
               newVar = newVar + `RegisteredOn >= '${paramVal[i]}'`;
@@ -155,7 +155,7 @@ const allUsers = asyncHandler(async (req, res) => {
             newVar = newVar + ` AND DateOfBirth <= '${paramVal[i]}'`;
           }
           else if(paramVal[i] == gender) {
-            newVar = newVar + ` AND Gender >= '${paramVal[i]}'`;
+            newVar = newVar + ` AND Gender = '${paramVal[i]}'`;
           }
           else if(paramVal[i] == startDate) {
             newVar = newVar + ` AND RegisteredOn >= '${paramVal[i]}'`;

@@ -305,7 +305,8 @@ const sendSMSNow = asyncHandler(async (req, res) => {
           console.log(err);
         });
         console.log('SMS sent to', PhoneNumber);
-    } 
+    } else res.json({isSuccessful: false, hasError: 'Something bad happened'})
+
   }
 
     // res.json(record);
@@ -320,11 +321,17 @@ const saveTemplate = asyncHandler(async (req, res) => {
   let tempBody = req.body.messageBody;
   console.log('here is the template sent', tempTitle, tempBody)
   try {
-    let pool = await mssql.connect(sqlConfig); 
-    let result = await pool.request().query(`INSERT into [dbo].[MessageTemplates](Title, Body) VALUES('${tempTitle}','${tempBody}')`);
-    mssql.close;
-    console.log('Here is your new template', result);
-    res.json({hasError: false, message: 'Record saved sucessfully'})
+    if(tempBody && tempTitle){
+      let pool = await mssql.connect(sqlConfig); 
+      let result = await pool.request().query(`INSERT into [dbo].[MessageTemplates](Title, Body) VALUES('${tempTitle}','${tempBody}')`);
+      mssql.close;
+      console.log('Here is your new template', result);
+      res.json({hasError: false, message: 'Record saved sucessfully'})
+    } else {
+      res.json({isSuccessful: false, hasError: 'Make sure you pass the body correctly'})
+
+    }
+    
   }
   catch (error) {
     res.json({isSuccessful: false, hasError: 'Something happened'})
