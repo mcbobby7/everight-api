@@ -362,7 +362,7 @@ var mailer = nodemailer.createTransport(sgTransport(options));
         let userData = await pool.request().query(`select * from [dbo].[User_Personal] where Email_id = '${userEmail}'`);
         userData = userData.recordset[0].Employee_id;
         console.log('See your user data:', userData)
-        let refNo = Math.floor(Math.random() * 1000000) + 1; 
+        let refNo = (Math.floor(Math.random() * 1000000) + 1) + new Date(); 
         console.log(refNo);
         if(userData){
           let result = await pool.request().query(`INSERT into [dbo].[PasswordRecovery](UserEmail, ReferenceNo) VALUES('${userEmail}','${refNo}')`);
@@ -370,15 +370,15 @@ var mailer = nodemailer.createTransport(sgTransport(options));
             let messageTemp = await pool.request().query(`select * from [dbo].[MessageTemplates] where Title = 'Password'`); 
             let messageContent = messageTemp.recordset[0].Body;
             // replace("[[refNo]]", refNo).${userEmail}
-            let link = 'mylink.com'
+            let link = `selfservice.everightlab.com/reset-password/:${refNo}`;
             messageContent = messageContent.replace("[[link]]", link);
             var email = {
             to: [userEmail],
             from: "philipmuyiwa@gmail.com",
             subject: messageTemp.recordset[0].Title,
-            text: messageContent,
-            html: `<h5>${messageTemp.recordset[0].Title}</h5>`
-        }
+            text: link,
+            html: `<h5>${link}</h5>`
+              }
   
           mailer.sendMail(email, function(err, res) {
             if (err) { 
@@ -393,6 +393,8 @@ var mailer = nodemailer.createTransport(sgTransport(options));
             res.json({isSuccessful: failed}) 
           }
           
+        } else {
+          res.json({isSuccessful: failed}) 
         }
 
          
@@ -417,11 +419,17 @@ var mailer = nodemailer.createTransport(sgTransport(options));
       res.json({isSuccessful: false, hasError: 'password does not match with confirm password'})
     } else {
       let confirmUser = await pool.request().query(`select * from [dbo].[PasswordRecovery] where ReferenceNo = '${refNo}' AND UserEmail = '${userEmail}'`); 
-      if(confirmUser){
-        let updatePassword = `UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Password = '${confpassword}' WHERE Email_id = '${userEmail}'`;
-        // console.log(updatePassword.recordset[0])
+      let confirmUserVal =  confirmUser.recordsets[0];
+      console.log('this is the user',confirmUserVal)
+      if(confirmUserVal.length > 0){
+        let updatePassword = await pool.request().query(`UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Password = '${confpassword}' WHERE Email_id = '${userEmail}'`);
+        if(updatePassword){
+          console.log('this is me',updatePassword)
         mssql.close;
         res.json({isSuccessful: true, message: 'Success'});
+        }
+      } else {
+        res.json({isSuccessful: false, hasError: 'Your user does not exist'})
       }
     }
       // res.json(record);
