@@ -360,11 +360,17 @@ var mailer = nodemailer.createTransport(sgTransport(options));
         console.log('I got here')
         let pool = await mssql.connect(sqlConfig);
         let userData = await pool.request().query(`select * from [dbo].[User_Personal] where Email_id = '${userEmail}'`);
-        userData = userData.recordset[0].Employee_id;
+        userData = userData.recordsets[0];
         console.log('See your user data:', userData)
-        let refNo = (Math.floor(Math.random() * 1000000) + 1) + new Date(); 
+        let dateObj = new Date();
+        let month = dateObj.getUTCMonth() + 1; //months from 1-12
+        let day = dateObj.getUTCDate();
+        let year = dateObj.getUTCFullYear();
+        let newdate = year + '-' + month + '-' +day;
+        console.log('new date is:',newdate)
+        let refNo = (Math.floor(Math.random() * 1000000) + 1) + newdate; 
         console.log(refNo);
-        if(userData){
+        if(userData.length > 0){
           let result = await pool.request().query(`INSERT into [dbo].[PasswordRecovery](UserEmail, ReferenceNo) VALUES('${userEmail}','${refNo}')`);
           if(result){
             let messageTemp = await pool.request().query(`select * from [dbo].[MessageTemplates] where Title = 'Password'`); 
@@ -422,14 +428,14 @@ var mailer = nodemailer.createTransport(sgTransport(options));
       let confirmUserVal =  confirmUser.recordsets[0];
       console.log('this is the user',confirmUserVal)
       if(confirmUserVal.length > 0){
-        let updatePassword = await pool.request().query(`UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Password = '${confpassword}' WHERE Email_id = '${userEmail}'`);
+        let updatePassword = await pool.request().query(`UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Pass = '${confpassword}' WHERE Email_id = '${userEmail}'`);
         if(updatePassword){
           console.log('this is me',updatePassword)
         mssql.close;
         res.json({isSuccessful: true, message: 'Success'});
         }
       } else {
-        res.json({isSuccessful: false, hasError: 'Your user does not exist'})
+        res.json({isSuccessful: false, hasError: 'User does not exist or incorrect reference number'})
       }
     }
       // res.json(record);
