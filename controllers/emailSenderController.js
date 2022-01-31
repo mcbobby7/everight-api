@@ -390,11 +390,11 @@ var mailer = nodemailer.createTransport(sgTransport(options));
           res.json({isSuccessful: true})
           }
           else {
-            res.json({isSuccessful: failed}) 
+            res.json({isSuccessful: false, hasError: 'User does not exist'}) 
           }
           
         } else {
-          res.json({isSuccessful: failed}) 
+          res.json({isSuccessful: failed, hasError: 'Something bad happened'}) 
         }
 
          
