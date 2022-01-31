@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 const router = express.Router();
-import { sendMailNow, sendSMSNow, allTemplates, celebrantsDayMail, singleTemplate, updateTemplate, saveTemplate, brithdaySMS} from "../controllers/emailSenderController.js";
+import { sendMailNow, sendSMSNow, allTemplates, passwordRecovery,changePassword, celebrantsDayMail, singleTemplate, updateTemplate, saveTemplate, brithdaySMS} from "../controllers/emailSenderController.js";
 import schedule from 'node-schedule'
 const app = express();
 
@@ -15,5 +15,7 @@ router.get("/fetchAllTemplates", cors({origin: '*'}), allTemplates);
 router.get("/fetchTemplate/:id", cors({origin: '*'}), singleTemplate);
 router.post("/updateTemplate", cors({origin: '*'}), updateTemplate);
 router.post("/addTemplate", cors({origin: '*'}), saveTemplate);
+router.post("/recoverPassword", cors({origin: '*'}), passwordRecovery);
+router.post("/resetPassword", cors({origin: '*'}), changePassword);
 
 export default router;

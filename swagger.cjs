@@ -91,6 +91,47 @@ module.exports = {
         },
       },
 
+      recoverPass: {
+        required: ["userEmail"],
+        type: "object", // data type
+        properties: {
+          userEmail: {
+            type: "string", // data type
+            format: "string",
+            description: "user's email", // desc
+          },
+        },
+      },
+
+      newPassword: {
+        required: ["userEmail", "refNo", "newPassword"],
+        type: "object", // data type
+        properties: {
+          userEmail: {
+            type: "string", // data type
+            format: "string",
+            description: "user's email", // desc
+          },
+          refNo: {
+            type: "string", // data type
+            format: "string",
+            description: "reference number", // desc
+          },
+
+          password: {
+            type: "string", // data type
+            format: "string",
+            description: "new password", // desc
+          },
+
+          confirmPassword: {
+            type: "string", // data type
+            format: "string",
+            description: "confirm new password", // desc
+          },
+        },
+      },
+
       usersGeneratedTemp: {
         required: ["minAge", "maxAge", "gender", "startDate","endDate"],
         type: "object", // data type
@@ -857,6 +898,158 @@ module.exports = {
             "text/json": {
               schema: {
                 $ref: "#/components/schemas/usersDataTemp",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Success",
+            content: {
+              "text/plain": {
+                schema: {
+                  $ref: "#/components/schemas/generalResponse",
+                },
+              },
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/generalResponse",
+                },
+              },
+              "text/json": {
+                schema: {
+                  $ref: "#/components/schemas/generalResponse",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Bad Request",
+            content: {
+              "text/plain": {
+                schema: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string",
+                  },
+                },
+              },
+              "application/json": {
+                schema: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string",
+                  },
+                },
+              },
+              "text/json": {
+                schema: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server Error",
+          },
+        },
+      },
+    },
+
+    "/api/Notifications/recoverPassword": {
+      post: {
+        tags: ["Account Operations"],
+        summary: "API for password recovery",
+        requestBody: {
+          description: "",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/recoverPass",
+              },
+            },
+            "text/json": {
+              schema: {
+                $ref: "#/components/schemas/recoverPass",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Success",
+            content: {
+              "text/plain": {
+                schema: {
+                  $ref: "#/components/schemas/generalResponse",
+                },
+              },
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/generalResponse",
+                },
+              },
+              "text/json": {
+                schema: {
+                  $ref: "#/components/schemas/generalResponse",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Bad Request",
+            content: {
+              "text/plain": {
+                schema: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string",
+                  },
+                },
+              },
+              "application/json": {
+                schema: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string",
+                  },
+                },
+              },
+              "text/json": {
+                schema: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+          500: {
+            description: "Server Error",
+          },
+        },
+      },
+    },
+
+    "/api/Notifications/resetPassword": {
+      post: {
+        tags: ["Account Operations"],
+        summary: "API for changing password",
+        requestBody: {
+          description: "",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/newPassword",
+              },
+            },
+            "text/json": {
+              schema: {
+                $ref: "#/components/schemas/newPassword",
               },
             },
           },

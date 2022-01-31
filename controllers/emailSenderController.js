@@ -342,5 +342,94 @@ const saveTemplate = asyncHandler(async (req, res) => {
 
 });
 
+const passwordRecovery = asyncHandler(async (req, res) => {
+  let userEmail = req.body.userEmail;
+
+  console.log('Here is your data',userEmail)
+  var options = {
+    auth: {
+        api_key: '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'
+    }
+}
+var mailer = nodemailer.createTransport(sgTransport(options)); 
+    
+    try {
+      if(!userEmail){
+        res.json({isSuccessful: false, hasError: 'Please pass user email'});
+      } else {
+        console.log('I got here')
+        let pool = await mssql.connect(sqlConfig);
+        let userData = await pool.request().query(`select * from [dbo].[User_Personal] where Email_id = '${userEmail}'`);
+        userData = userData.recordset[0].Employee_id;
+        console.log('See your user data:', userData)
+        let refNo = Math.floor(Math.random() * 1000000) + 1; 
+        console.log(refNo);
+        if(userData){
+          let result = await pool.request().query(`INSERT into [dbo].[PasswordRecovery](UserEmail, ReferenceNo) VALUES('${userEmail}','${refNo}')`);
+          if(result){
+            let messageTemp = await pool.request().query(`select * from [dbo].[MessageTemplates] where Title = 'Password'`); 
+            let messageContent = messageTemp.recordset[0].Body;
+            // replace("[[refNo]]", refNo).${userEmail}
+            let link = 'mylink.com'
+            messageContent = messageContent.replace("[[link]]", link);
+            var email = {
+            to: [userEmail],
+            from: "philipmuyiwa@gmail.com",
+            subject: messageTemp.recordset[0].Title,
+            text: messageContent,
+            html: `<h5>${messageTemp.recordset[0].Title}</h5>`
+        }
   
-  export {sendMailNow, brithdaySMS, sendSMSNow, allTemplates, saveTemplate, singleTemplate, updateTemplate, celebrantsDayMail};
+          mailer.sendMail(email, function(err, res) {
+            if (err) { 
+                console.log(err) 
+            }
+            else console.log('email sent to', userEmail);
+          
+          });
+          res.json({isSuccessful: true})
+          }
+          else {
+            res.json({isSuccessful: failed}) 
+          }
+          
+        }
+
+         
+      } 
+      
+    } catch (error) {
+      res.json({isSuccessful: false, hasError: 'Something bad happened'})
+      console.log(error.message);
+      mssql.close;
+    }
+  });
+
+  const changePassword = asyncHandler(async (req, res) => {
+    let userEmail = req.body.userEmail;
+    let refNo = req.body.refNo;
+    let password = req.body.password;
+    let confpassword = req.body.confirmPassword;
+    let pool = await mssql.connect(sqlConfig);   
+    if(!userEmail || !refNo || !password || !confpassword){
+      res.json({isSuccessful: false, hasError: 'Something happened, make sure you passed all the required fields'})
+    } else if (password !== confpassword){
+      res.json({isSuccessful: false, hasError: 'password does not match with confirm password'})
+    } else {
+      let confirmUser = await pool.request().query(`select * from [dbo].[PasswordRecovery] where ReferenceNo = '${refNo}' AND UserEmail = '${userEmail}'`); 
+      if(confirmUser){
+        let updatePassword = `UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Password = '${confpassword}' WHERE Email_id = '${userEmail}'`;
+        // console.log(updatePassword.recordset[0])
+        mssql.close;
+        res.json({isSuccessful: true, message: 'Success'});
+      }
+    }
+      // res.json(record);
+      // res.json({isSuccessful: true})
+      // That's it. AT will then send your SMSs to your Simulators
+      
+    // })
+  });
+
+  
+  export {sendMailNow, brithdaySMS, sendSMSNow, allTemplates, saveTemplate, singleTemplate, updateTemplate, celebrantsDayMail, passwordRecovery, changePassword};
