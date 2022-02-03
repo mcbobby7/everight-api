@@ -375,25 +375,170 @@ var mailer = nodemailer.createTransport(sgTransport(options));
           if(result){
             let messageTemp = await pool.request().query(`select * from [dbo].[MessageTemplates] where Title = 'Password'`); 
             let messageContent = messageTemp.recordset[0].Body;
+            console.log('Here is your message:', messageContent)
             // replace("[[refNo]]", refNo).${userEmail}
             let link = `selfservice.everightlab.com/reset-password/:${refNo}`;
-            messageContent = messageContent.replace("[[link]]", link);
+            let name = userData[0].First_Name;
+            let message = messageContent.replace("[link]", link).replace("[name]", name);
+            console.log('Here is your message:', message, name)
+
             var email = {
             to: [userEmail],
             from: "philipmuyiwa@gmail.com",
             subject: messageTemp.recordset[0].Title,
-            text: link,
-            html: `<h5>${link}</h5>`
+            text: message,
+            html: `<body style="background-color: #FFFFFF; margin: 0; padding: 0; -webkit-text-size-adjust: none; text-size-adjust: none;">
+            <table border="0" cellpadding="0" cellspacing="0" class="nl-container" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #FFFFFF;" width="100%">
+            <tbody>
+            <tr>
+            <td>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-1" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f5f5f5;" width="100%">
+            <tbody>
+            <tr>
+            <td>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 500px;" width="500">
+            <tbody>
+            <tr>
+            <td class="column" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-top: 0px; padding-bottom: 5px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
+            <table border="0" cellpadding="0" cellspacing="0" class="image_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+            <tr>
+            <td style="padding-bottom:10px;width:100%;padding-right:0px;padding-left:0px;">
+            <div align="center" style="line-height:10px"><img alt="your-logo" src="../assets/images/logo.png" style="display: block; height: auto; border: 0; width: 125px; max-width: 100%;" title="your-logo" width="125"/></div>
+            </td>
+            </tr>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-2" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f5f5f5;" width="100%">
+            <tbody>
+            <tr>
+            <td>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 500px;" width="500">
+            <tbody>
+            <tr>
+            <td class="column" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-top: 5px; padding-bottom: 0px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
+            <table border="0" cellpadding="0" cellspacing="0" class="image_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+            <tr>
+            <td style="width:100%;padding-right:0px;padding-left:0px;">
+            </td>
+            </tr>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-3" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f5f5f5;" width="100%">
+            <tbody>
+            <tr>
+            <td>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width: 500px;" width="500">
+            <tbody>
+            <tr>
+            <td class="column" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-top: 0px; padding-bottom: 5px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
+            <table border="0" cellpadding="0" cellspacing="0" class="image_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+            <tr>
+            <!-- <td style="padding-bottom:5px;padding-left:5px;padding-right:5px;width:100%;">
+            <div align="center" style="line-height:10px"><img alt="reset-password" src="images/pass-animate.gif" style="display: block; height: auto; border: 0; width: 350px; max-width: 100%;" title="reset-password" width="350"/></div>
+            </td> -->
+            </tr>
+            </table>
+            <table border="0" cellpadding="0" cellspacing="0" class="heading_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+            <tr>
+            <td style="text-align:center;width:100%;">
+            <span style="margin: 0; color: #393d47; direction: ltr; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 25px; font-weight: normal; letter-spacing: normal; line-height: 100%; text-align: center; margin-top: 0; margin-bottom: 0;">There was a request to change your password!</span>
+            </td>
+            </tr>
+            </table>
+            <table border="0" cellpadding="10" cellspacing="0" class="text_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word;" width="100%">
+            <tr>
+            <td>
+            <div style="font-family: Tahoma, Verdana, sans-serif">
+            <div style="font-size: 12px; font-family: Tahoma, Verdana, Segoe, sans-serif; mso-line-height-alt: 18px; color: #393d47; line-height: 1.5;">
+            <p style="margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 21px;"><span style="">Please click this button to change your password</span></span></p>
+            </div>
+            </div>
+            </td>
+            </tr>
+            </table>
+            <table border="0" cellpadding="15" cellspacing="0" class="button_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+            <tr>
+            <td>
+            <div align="center">
+            <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${link}" style="height:58px;width:257px;v-text-anchor:middle;" arcsize="35%" strokeweight="0.75pt" strokecolor="#07a7e3" fillcolor="#07a7e3"><w:anchorlock/><v:textbox inset="0px,0px,0px,0px"><center style="color:#393d47; font-family:Tahoma, Verdana, sans-serif; font-size:18px"><![endif]--><a href="${link}" style="text-decoration:none;display:inline-block;color:#393d47;background-color:#07a7e3;border-radius:20px;width:auto;border-top:1px solid #07a7e3;border-right:1px solid #07a7e3;border-bottom:1px solid #07a7e3;border-left:1px solid #07a7e3;padding-top:10px;padding-bottom:10px;font-family:Tahoma, Verdana, Segoe, sans-serif;text-align:center;mso-border-alt:none;word-break:keep-all;" target="_blank"><span style="padding-left:50px;padding-right:50px;font-size:18px;display:inline-block;letter-spacing:normal;"><span style="font-size: 16px; line-height: 2; word-break: break-word; mso-line-height-alt: 32px;"><span data-mce-style="font-size: 18px; line-height: 36px;" style="font-size: 18px; line-height: 36px;"><strong>RESET PASSWORD</strong></span></span></span></a>
+            <!--[if mso]></center></v:textbox></v:roundrect><![endif]-->
+            </div>
+            </td>
+            </tr>
+            </table>
+            <table border="0" cellpadding="0" cellspacing="0" class="text_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word;" width="100%">
+            <tr>
+            <td style="padding-bottom:5px;padding-left:10px;padding-right:10px;padding-top:10px;">
+            <div style="font-family: Tahoma, Verdana, sans-serif">
+            <div style="font-size: 12px; font-family: Tahoma, Verdana, Segoe, sans-serif; text-align: center; mso-line-height-alt: 18px; color: #393d47; line-height: 1.5;">
+            <p style="margin: 0; mso-line-height-alt: 19.5px;"><span style="font-size:13px;">If you didn’t request to change your password, simply ignore this email.</span></p>
+            </div>
+            </div>
+            </td>
+            </tr>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-5" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f5f5f5;" width="100%">
+            <tbody>
+            <tr>
+            <td>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 500px;" width="500">
+            <tbody>
+            <tr>
+            <td class="column" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-top: 5px; padding-bottom: 5px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;" width="100%">
+            <table border="0" cellpadding="15" cellspacing="0" class="text_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word;" width="100%">
+            <tr>
+            <td>
+            </td>
+            </tr>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table>
+            </td>
+            </tr>
+            </tbody>
+            </table><!-- End -->
+            </body>`,
               }
   
           mailer.sendMail(email, function(err, res) {
             if (err) { 
-                console.log(err) 
+                console.log(err);
+                res.json({isSuccessful: false, hasError: err})
+
             }
             else console.log('email sent to', userEmail);
           
           });
-          res.json({isSuccessful: true})
+          res.json({isSuccessful: true, hasError: 'Message sent successfully'})
           }
           else {
             res.json({isSuccessful: false, hasError: 'User does not exist'}) 
@@ -420,22 +565,22 @@ var mailer = nodemailer.createTransport(sgTransport(options));
     let confpassword = req.body.confirmPassword;
     let pool = await mssql.connect(sqlConfig);   
     if(!userEmail || !refNo || !password || !confpassword){
-      res.json({isSuccessful: false, hasError: 'Something happened, make sure you passed all the required fields'})
+      res.json({isSuccessful: false, hasError: 'Something happened, make sure you passed all the required fields'});
     } else if (password !== confpassword){
-      res.json({isSuccessful: false, hasError: 'password does not match with confirm password'})
+      res.json({isSuccessful: false, hasError: 'password does not match with confirm password'});
     } else {
       let confirmUser = await pool.request().query(`select * from [dbo].[PasswordRecovery] where ReferenceNo = '${refNo}' AND UserEmail = '${userEmail}'`); 
       let confirmUserVal =  confirmUser.recordsets[0];
-      console.log('this is the user',confirmUserVal)
+      console.log('this is the user',confirmUserVal);
       if(confirmUserVal.length > 0){
         let updatePassword = await pool.request().query(`UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Pass = '${confpassword}' WHERE Email_id = '${userEmail}'`);
         if(updatePassword){
-          console.log('this is me',updatePassword)
+          console.log('this is me',updatePassword);
         mssql.close;
         res.json({isSuccessful: true, message: 'Success'});
         }
       } else {
-        res.json({isSuccessful: false, hasError: 'User does not exist or incorrect reference number'})
+        res.json({isSuccessful: false, hasError: 'User does not exist or incorrect reference number'});
       }
     }
       // res.json(record);
