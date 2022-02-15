@@ -6,9 +6,7 @@ import userRoute from "./routers/userRoute.js";
 import sendNotifications from "./routers/sendNotifications.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.cjs";
-import getReceipts from "./routers/lola_router.js";
 import cors from "cors";
-import fs from 'fs'
 const app = express();
 
 app.use(cors({
@@ -23,6 +21,7 @@ dotenv.config();
 app.use(express.json());
 app.use("/api/Users", userRoute);
 app.use("/api/Notifications", sendNotifications);
+app.use(express.static('assets' + '/images'))
 
 // app.use("/api/getit", getReceipts);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));

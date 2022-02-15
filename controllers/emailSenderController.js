@@ -377,6 +377,7 @@ var mailer = nodemailer.createTransport(sgTransport(options));
             let messageContent = messageTemp.recordset[0].Body;
             console.log('Here is your message:', messageContent)
             // replace("[[refNo]]", refNo).${userEmail}
+            // <img alt="Everight logo" src="/logo.png" style="display: block; height: auto; border: 0; width: 325px; max-width: 100%;" title="Everight logo" width="325"/>
             let link = `selfservice.everightlab.com/reset-password/:${refNo}`;
             let name = userData[0].First_Name;
             let message = messageContent.replace("[link]", link).replace("[name]", name);
@@ -403,7 +404,7 @@ var mailer = nodemailer.createTransport(sgTransport(options));
             <table border="0" cellpadding="0" cellspacing="0" class="image_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
             <tr>
             <td style="padding-bottom:10px;width:100%;padding-right:0px;padding-left:0px;">
-            <div align="center" style="line-height:10px"><img alt="your-logo" src="../assets/images/logo.png" style="display: block; height: auto; border: 0; width: 125px; max-width: 100%;" title="your-logo" width="125"/></div>
+            <div align="center" style="line-height:10px"><h4>Everight Lab</h4></div>
             </td>
             </tr>
             </table>

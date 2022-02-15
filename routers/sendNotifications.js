@@ -17,5 +17,6 @@ router.post("/updateTemplate", cors({origin: '*'}), updateTemplate);
 router.post("/addTemplate", cors({origin: '*'}), saveTemplate);
 router.post("/recoverPassword", cors({origin: '*'}), passwordRecovery);
 router.post("/resetPassword", cors({origin: '*'}), changePassword);
+router.get("/resource/:resname", cors({origin: '*'}), singleTemplate);
 
 export default router;
