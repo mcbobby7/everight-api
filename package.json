@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "africastalking": "^0.5.4",
+    "axios": "^0.27.2",
     "body-parser": "^1.19.0",
     "cjs-module-lexer": "^1.2.2",
     "cors": "^2.8.5",

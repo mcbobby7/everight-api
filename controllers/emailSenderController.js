@@ -5,51 +5,56 @@ import mssql from "mssql";
 import bodyParser from "body-parser";
 import express from "express";
 import { createRequire } from "module";
-import Joi from 'joi'
+import Joi from "joi";
+import moment from "moment";
+import axios from "axios";
+import { fork } from "child_process";
 
 //Send in the midnight
 // schedule.scheduleJob('0 0 * * *', () => {})
 const require = createRequire(import.meta.url);
-const app = express()
-
+const app = express();
 
 const sqlConfig = {
-    user: "superdbuser",
-    password: "J@p@n123",
-    database: "hmsdb",
-    server: "mssql-35101-0.cloudclusters.net",
-    port: 35101,
-    pool: {
-      max: 10,
-      min: 0,
-      idleTimeoutMillis: 30000,
-    },
-    options: {
-      encrypt: true, // for azure
-      trustServerCertificate: true,
-    },
-  };
+  user: "superdbuser",
+  password: "J@p@n123",
+  database: "hmsdb",
+  server: "mssql-35101-0.cloudclusters.net",
+  port: 35101,
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 30000,
+  },
+  options: {
+    encrypt: true, // for azure
+    trustServerCertificate: true,
+  },
+};
 // api key https://sendgrid.com/docs/Classroom/Send/api_keys.html
 var options = {
-    auth: {
-        api_key: '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'
-    }
-}
- 
+  auth: {
+    api_key:
+      "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",
+  },
+};
+
 // or
- 
+
 // username + password
 var options = {
-    auth: {
-        api_user: 'philip',
-        api_key: '@Naopemipo08136895580'
-    }
-}
+  auth: {
+    api_user: "philip",
+    api_key: "@Naopemipo08136895580",
+  },
+};
 
 const allTemplates = asyncHandler(async (req, res) => {
   try {
     let pool = await mssql.connect(sqlConfig);
-    let result = await pool.request().query("select * from [dbo].[MessageTemplates]");
+    let result = await pool
+      .request()
+      .query("select * from [dbo].[MessageTemplates]");
     console.log(result);
     res.json(result);
     mssql.close;
@@ -59,331 +64,354 @@ const allTemplates = asyncHandler(async (req, res) => {
   }
 });
 
-const singleTemplate =  asyncHandler(async (req, res) => {
-let messageId = req.params.id;
-try {
-
-  let pool = await mssql.connect(sqlConfig);
-  let result = await pool.request().query(`select * from [dbo].[MessageTemplates] where Id = ${messageId}`);
-  console.log(result);
-  res.json(result);
-  mssql.close;
-} catch (error) {
-  console.log(error.message);
-  mssql.close;
-}
+const singleTemplate = asyncHandler(async (req, res) => {
+  let messageId = req.params.id;
+  try {
+    let pool = await mssql.connect(sqlConfig);
+    let result = await pool
+      .request()
+      .query(`select * from [dbo].[MessageTemplates] where Id = ${messageId}`);
+    console.log(result);
+    res.json(result);
+    mssql.close;
+  } catch (error) {
+    console.log(error.message);
+    mssql.close;
+  }
 });
 
-const updateTemplate =  asyncHandler(async (req, res) => {
+const updateTemplate = asyncHandler(async (req, res) => {
   let messageId = req.body.id;
   let title = req.body.title;
   let msgBody = req.body.messageBody;
 
-  console.log('here is it', messageId, title, msgBody)
+  console.log("here is it", messageId, title, msgBody);
   try {
-  
     let pool = await mssql.connect(sqlConfig);
-      let result = await pool.request().query(`UPDATE [dbo].[MessageTemplates] SET Title = '${title}', Body = '${msgBody}' WHERE Id = ${messageId}`);
+    let result = await pool
+      .request()
+      .query(
+        `UPDATE [dbo].[MessageTemplates] SET Title = '${title}', Body = '${msgBody}' WHERE Id = ${messageId}`
+      );
     console.log(result);
     res.json(result);
     mssql.close;
   } catch (error) {
-    res.json({isSuccessful: false, hasError: 'Something happened'})
+    res.json({ isSuccessful: false, hasError: "Something happened" });
     console.log(error.message);
     mssql.close;
   }
-  });
-
+});
 
 const celebrantsDayMail = asyncHandler(async (req, res) => {
   let messageId = req.body.templateId;
   let senderId = req.body.senderId;
-    try {
-           //Call an endpoint to return the generatedUsers
-        let result = await pool.request().query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
+  try {
+    //Call an endpoint to return the generatedUsers
+    let result = await pool.request()
+      .query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
         WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
         BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(DAY, 1, GETDATE())-1 AS DATE)`);
-        console.log(result);
-        // res.json(result);
-        mssql.close;
+    console.log(result);
+    // res.json(result);
+    mssql.close;
 
-        let record = result.recordset;
+    let record = result.recordset;
 
-        var options = {
-            auth: {
-                api_key: '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'
-            }
-        }
-            
-        var mailer = nodemailer.createTransport(sgTransport(options));                   
-
-      for(let i = 0; i< record.length; i++){
-        let name = record[i].name;
-        let age = Date() - record[i].DateOfBirth;;
-        let gender = record[i].gender;;
-        let pool = await mssql.connect(sqlConfig);
-        let messageTemp = await pool.request().query(`select Body from [dbo].[MessageTemplates] where Id = ${messageId}`);
-        let message = messageTemp.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender)
-        console.log('Here is your message body:',message)
-            var email = {
-                to: [record[i].EmailAddress],
-                from: senderId,
-                subject: message.recordset[0].Title,
-                text: message.recordset[0].Body,
-                html: '<h5>Happy Birthdaty</h5>'
-            }; 
-
-            // console.log('Messagers a',allTemplates.recordset[0])
-
-            mailer.sendMail(email, function(err, res) {
-                if (err) { 
-                    console.log(err) 
-                }
-                console.log('email sent to', record[i].EmailAddress);
-               
-            });
-          }
-
-        res.json({isSuccessful: true})
-         
-        
-      
-    } catch (error) {
-      res.json({isSuccessful: false, hasError: 'Something happened'})
-      console.log(error.message);
-      mssql.close;
-    }
-  });
-
-  const sendMailNow = asyncHandler(async (req, res) => {
-    let messageId = req.body.templateId;
-    let userData = JSON.parse(req.body.UsersData);
-    // let userData = req.body.UsersData;
-    let senderName = req.body.senderName;
-
-    console.log('Here is your data',userData)
     var options = {
       auth: {
-          api_key: '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'
-      }
+        api_key:
+          "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",
+      },
+    };
+
+    var mailer = nodemailer.createTransport(sgTransport(options));
+
+    for (let i = 0; i < record.length; i++) {
+      let name = record[i].name;
+      let age = Date() - record[i].DateOfBirth;
+      let gender = record[i].gender;
+      let pool = await mssql.connect(sqlConfig);
+      let messageTemp = await pool
+        .request()
+        .query(
+          `select Body from [dbo].[MessageTemplates] where Id = ${messageId}`
+        );
+      let message = messageTemp
+        .replace("[[name]]", name)
+        .replace("[[age]]", age)
+        .replace("[[gender]]", gender);
+      console.log("Here is your message body:", message);
+      var email = {
+        to: [record[i].EmailAddress],
+        from: senderId,
+        subject: message.recordset[0].Title,
+        text: message.recordset[0].Body,
+        html: "<h5>Happy Birthdaty</h5>",
+      };
+
+      // console.log('Messagers a',allTemplates.recordset[0])
+
+      mailer.sendMail(email, function (err, res) {
+        if (err) {
+          console.log(err);
+        }
+        console.log("email sent to", record[i].EmailAddress);
+      });
+    }
+
+    res.json({ isSuccessful: true });
+  } catch (error) {
+    res.json({ isSuccessful: false, hasError: "Something happened" });
+    console.log(error.message);
+    mssql.close;
   }
-  var mailer = nodemailer.createTransport(sgTransport(options)); 
-      
-      try {
-        if(!messageId || !userData || !senderName){
-          res.json({isSuccessful: false, hasError: 'Check what you are sending please'});
-        } else {
-          let pool = await mssql.connect(sqlConfig);
-          let messageTemp = await pool.request().query(`select * from [dbo].[MessageTemplates] where Id = ${messageId}`);
-          let messageContent = messageTemp.recordset[0].Body;
-          console.log('See your message template:', messageTemp)
-          for(let i = 0; i < userData.length; i++){
-            if(userData[i].EmailAddress){
-              let name = userData[i].name;
-              let age = userData[i].age;
-              let gender  = userData[i].gender;
-    
-              messageContent = messageContent.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender);
-              var email = {
-                to: [userData[i].EmailAddress],
-                from: "philipmuyiwa@gmail.com",
-                subject: messageTemp.recordset[0].Title,
-                text: messageContent,
-                html: `<h5>${messageTemp.recordset[0].Title}</h5>`
-            }
+});
 
-              mailer.sendMail(email, function(err, res) {
-                if (err) { 
-                    console.log(err) 
-                }
-                else console.log('email sent to', userData[i].EmailAddress);
-              
-              });
-          }; 
-
-          // console.log('Messagers a',allTemplates.recordset[0])
-
-         
-  
-          }       
-   
-          res.json({isSuccessful: true})
-           
-        } 
-        
-      } catch (error) {
-        res.json({isSuccessful: false, hasError: 'Something happened'})
-        console.log(error.message);
-        mssql.close;
-      }
+const sendMailNow = asyncHandler(async (req, res) => {
+  let messageId = req.body.templateId;
+  let senderName = req.body.senderName;
+  let userData = JSON.parse(req.body.UsersData);
+  if (
+    !messageId ||
+    messageId === null ||
+    messageId === undefined ||
+    !userData ||
+    userData === null ||
+    userData === undefined ||
+    !senderName ||
+    senderName === null ||
+    senderName === undefined
+  ) {
+    res.json({
+      isSuccessful: true,
+      message: "failed to send required payload",
     });
+  }
+  const child = fork("./controllers/emailFork.js");
+  child.send("ready");
 
-    // const bodyParser = require('body-parser');
+  child.on("message", (message) => {
+    if (message === "ready") {
+      console.log("Returning /total results");
+      child.send({ messageId, userData, senderName });
+    } else if (message === "confirm") {
+      res.json({
+        isSuccessful: true,
+      });
+    } else if (message === "error") {
+      res.json({
+        isSuccessful: false,
+        message: "error sending notification",
+      });
+    }
+  });
+});
+
+// const bodyParser = require('body-parser');
 
 const credentials = {
-    apiKey: '012960fc8cad6546d2a9e790219cd034602ae9df0bb747c5d188064d840f7f91',
-    username: 'sandbox' // username is sandbox for sandbox applications
-    }
-    
-    const AT = require('africastalking')(credentials);
-    const sms = AT.SMS;
-    
-    app.use(bodyParser.urlencoded({ extended: false }));
-    app.use(bodyParser.json());   
-    
+  apiKey: "012960fc8cad6546d2a9e790219cd034602ae9df0bb747c5d188064d840f7f91",
+  username: "sandbox", // username is sandbox for sandbox applications
+};
+
+const AT = require("africastalking")(credentials);
+const sms = AT.SMS;
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
 const brithdaySMS = asyncHandler(async (req, res) => {
-    let pool = await mssql.connect(sqlConfig);    
-    let messageTemp = await pool.request().query(`select Body from [dbo].[MessageTemplates] where title = 'Birthday'`);
-    let result = await pool.request().query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
+  let pool = await mssql.connect(sqlConfig);
+  let messageTemp = await pool
+    .request()
+    .query(
+      `select Body from [dbo].[MessageTemplates] where title = 'Birthday'`
+    );
+  let result = await pool.request()
+    .query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
     WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
     BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(DAY, 1, GETDATE())-1 AS DATE)`);
-    mssql.close;
-    console.log('Here is your result', result.recordset)
-    let record = result.recordset;
-      
-      // create const options with fields to and message
-      for(let i = 0; i< record.length; i++){
-        let name = userData[i].name;
-        let message = messageTemp.replace("[[name]]", name);
-        console.log('Here is your message body:',message);
-        let PhoneNumber = ('+234'.concat(record[i].PhoneNo));
-        const options = {
-            to: [PhoneNumber],
-            message: message || 'Happy birthday',
-            shortCode: 'HMS',
-            keyword: 'Happy Birthday', // set your premium keyword
-            retryDurationInHours: 12 
-          }
+  mssql.close;
+  console.log("Here is your result", result.recordset);
+  let record = result.recordset;
 
-          console.log('sent boss:', PhoneNumber)
-    
-          sms.send(options).then(info => {
-            // return information from Africa's Talking
-            console.log('Messeage sent to:', PhoneNumber)
-          }).catch(err => {
-            console.log(err);
-          });
-          console.log('SMS sent to', PhoneNumber);
-      } 
+  // create const options with fields to and message
+  for (let i = 0; i < record.length; i++) {
+    let name = userData[i].name;
+    let message = messageTemp.replace("[[name]]", name);
+    console.log("Here is your message body:", message);
+    let PhoneNumber = "+234".concat(record[i].PhoneNo);
+    const options = {
+      to: [PhoneNumber],
+      message: message || "Happy birthday",
+      shortCode: "HMS",
+      keyword: "Happy Birthday", // set your premium keyword
+      retryDurationInHours: 12,
+    };
 
-      res.json(record);
-      // res.json({isSuccessful: true})
-      // That's it. AT will then send your SMSs to your Simulators
-      
-    // })
+    console.log("sent boss:", PhoneNumber);
+
+    sms
+      .send(options)
+      .then((info) => {
+        // return information from Africa's Talking
+        console.log("Messeage sent to:", PhoneNumber);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    console.log("SMS sent to", PhoneNumber);
+  }
+
+  res.json(record);
+  // res.json({isSuccessful: true})
+  // That's it. AT will then send your SMSs to your Simulators
+
+  // })
+});
+
+const test = asyncHandler(async (req, res) => {
+  let date = moment(new Date()).format("YYYY");
+  console.log(date);
 });
 
 const sendSMSNow = asyncHandler(async (req, res) => {
   let messageId = req.body.templateId;
   let userData = req.body.UsersData;
   let senderName = req.body.senderName;
-  let pool = await mssql.connect(sqlConfig);   
-  let messageTemp = await pool.request().query(`select Body from [dbo].[MessageTemplates] where Id = ${messageId}`); 
+  let pool = await mssql.connect(sqlConfig);
+  let messageTemp = await pool
+    .request()
+    .query(`select Body from [dbo].[MessageTemplates] where Id = ${messageId}`);
   mssql.close;
-    // create const options with fields to and message
-    for(let i = 0; i< userData.length; i++){
-      if(userData[i].PhoneNumber){
+  // create const options with fields to and message
+  for (let i = 0; i < userData.length; i++) {
+    if (userData[i].PhoneNumber) {
       let name = userData[i].name;
       let age = userData[i].age;
-      let gender  = userData[i].gender;
-      let message = messageTemp.replace("[[name]]", name).replace("[[age]]", age).replace("[[gender]]", gender)
-      let PhoneNumber = ('+234'.concat(userData[i].PhoneNo));
+      let gender = userData[i].gender;
+      let message = messageTemp
+        .replace("[[name]]", name)
+        .replace("[[age]]", age)
+        .replace("[[gender]]", gender);
+      let PhoneNumber = "+234".concat(userData[i].PhoneNo);
       const options = {
-          to: [PhoneNumber],
-          message: message || 'Happy birthday',
-          shortCode: senderName,
-          keyword: ' ', // set your premium keyword
-          retryDurationInHours: 12 
-        }
+        to: [PhoneNumber],
+        message: message || "Happy birthday",
+        shortCode: senderName,
+        keyword: " ", // set your premium keyword
+        retryDurationInHours: 12,
+      };
 
-        console.log('sent boss:', PhoneNumber)
-  
-        sms.send(options).then(info => {
+      console.log("sent boss:", PhoneNumber);
+
+      sms
+        .send(options)
+        .then((info) => {
           // return information from Africa's Talking
-          console.log('Messeage sent to:', PhoneNumber)
-        }).catch(err => {
+          console.log("Messeage sent to:", PhoneNumber);
+        })
+        .catch((err) => {
           console.log(err);
         });
-        console.log('SMS sent to', PhoneNumber);
-    } else res.json({isSuccessful: false, hasError: 'Something bad happened'})
-
+      console.log("SMS sent to", PhoneNumber);
+    } else
+      res.json({ isSuccessful: false, hasError: "Something bad happened" });
   }
 
-    // res.json(record);
-    res.json({isSuccessful: true})
-    // That's it. AT will then send your SMSs to your Simulators
-    
+  // res.json(record);
+  res.json({ isSuccessful: true });
+  // That's it. AT will then send your SMSs to your Simulators
+
   // })
 });
 
 const saveTemplate = asyncHandler(async (req, res) => {
   let tempTitle = req.body.title;
   let tempBody = req.body.messageBody;
-  console.log('here is the template sent', tempTitle, tempBody)
+  console.log("here is the template sent", tempTitle, tempBody);
   try {
-    if(tempBody && tempTitle){
-      let pool = await mssql.connect(sqlConfig); 
-      let result = await pool.request().query(`INSERT into [dbo].[MessageTemplates](Title, Body) VALUES('${tempTitle}','${tempBody}')`);
+    if (tempBody && tempTitle) {
+      let pool = await mssql.connect(sqlConfig);
+      let result = await pool
+        .request()
+        .query(
+          `INSERT into [dbo].[MessageTemplates](Title, Body) VALUES('${tempTitle}','${tempBody}')`
+        );
       mssql.close;
-      console.log('Here is your new template', result);
-      res.json({hasError: false, message: 'Record saved sucessfully'})
+      console.log("Here is your new template", result);
+      res.json({ hasError: false, message: "Record saved sucessfully" });
     } else {
-      res.json({isSuccessful: false, hasError: 'Make sure you pass the body correctly'})
-
+      res.json({
+        isSuccessful: false,
+        hasError: "Make sure you pass the body correctly",
+      });
     }
-    
-  }
-  catch (error) {
-    res.json({isSuccessful: false, hasError: 'Something happened'})
+  } catch (error) {
+    res.json({ isSuccessful: false, hasError: "Something happened" });
     console.log(error.message);
     mssql.close;
-
   }
-
 });
 
 const passwordRecovery = asyncHandler(async (req, res) => {
   let userEmail = req.body.userEmail;
 
-  console.log('Here is your data',userEmail)
+  console.log("Here is your data", userEmail);
   var options = {
     auth: {
-        api_key: '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'
-    }
-}
-var mailer = nodemailer.createTransport(sgTransport(options)); 
-    
-    try {
-      if(!userEmail){
-        res.json({isSuccessful: false, hasError: 'Please pass user email'});
-      } else {
-        console.log('I got here')
-        let pool = await mssql.connect(sqlConfig);
-        let userData = await pool.request().query(`select * from [dbo].[User_Personal] where Email_id = '${userEmail}'`);
-        userData = userData.recordsets[0];
-        console.log('See your user data:', userData)
-        let dateObj = new Date();
-        let month = dateObj.getUTCMonth() + 1; //months from 1-12
-        let day = dateObj.getUTCDate();
-        let year = dateObj.getUTCFullYear();
-        let newdate = year + '-' + month + '-' +day;
-        console.log('new date is:',newdate)
-        let refNo = (Math.floor(Math.random() * 1000000) + 1) + newdate; 
-        console.log(refNo);
-        if(userData.length > 0){
-          let result = await pool.request().query(`INSERT into [dbo].[PasswordRecovery](UserEmail, ReferenceNo) VALUES('${userEmail}','${refNo}')`);
-          if(result){
-            let messageTemp = await pool.request().query(`select * from [dbo].[MessageTemplates] where Title = 'Password'`); 
-            let messageContent = messageTemp.recordset[0].Body;
-            console.log('Here is your message:', messageContent)
-            // replace("[[refNo]]", refNo).${userEmail}
-            // <img alt="Everight logo" src="/logo.png" style="display: block; height: auto; border: 0; width: 325px; max-width: 100%;" title="Everight logo" width="325"/>
-            let link = `selfservice.everightlab.com/reset-password/:${refNo}`;
-            let name = userData[0].First_Name;
-            let message = messageContent.replace("[link]", link).replace("[name]", name);
-            console.log('Here is your message:', message, name)
+      api_key:
+        "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",
+    },
+  };
+  var mailer = nodemailer.createTransport(sgTransport(options));
 
-            var email = {
+  try {
+    if (!userEmail) {
+      res.json({ isSuccessful: false, hasError: "Please pass user email" });
+    } else {
+      console.log("I got here");
+      let pool = await mssql.connect(sqlConfig);
+      let userData = await pool
+        .request()
+        .query(
+          `select * from [dbo].[User_Personal] where Email_id = '${userEmail}'`
+        );
+      userData = userData.recordsets[0];
+      console.log("See your user data:", userData);
+      let dateObj = new Date();
+      let month = dateObj.getUTCMonth() + 1; //months from 1-12
+      let day = dateObj.getUTCDate();
+      let year = dateObj.getUTCFullYear();
+      let newdate = year + "-" + month + "-" + day;
+      console.log("new date is:", newdate);
+      let refNo = Math.floor(Math.random() * 1000000) + 1 + newdate;
+      console.log(refNo);
+      if (userData.length > 0) {
+        let result = await pool
+          .request()
+          .query(
+            `INSERT into [dbo].[PasswordRecovery](UserEmail, ReferenceNo) VALUES('${userEmail}','${refNo}')`
+          );
+        if (result) {
+          let messageTemp = await pool
+            .request()
+            .query(
+              `select * from [dbo].[MessageTemplates] where Title = 'Password'`
+            );
+          let messageContent = messageTemp.recordset[0].Body;
+          console.log("Here is your message:", messageContent);
+          // replace("[[refNo]]", refNo).${userEmail}
+          // <img alt="Everight logo" src="/logo.png" style="display: block; height: auto; border: 0; width: 325px; max-width: 100%;" title="Everight logo" width="325"/>
+          let link = `selfservice.everightlab.com/reset-password/:${refNo}`;
+          let name = userData[0].First_Name;
+          let message = messageContent
+            .replace("[link]", link)
+            .replace("[name]", name);
+          console.log("Here is your message:", message, name);
+
+          var email = {
             to: [userEmail],
             from: "philipmuyiwa@gmail.com",
             subject: messageTemp.recordset[0].Title,
@@ -528,68 +556,91 @@ var mailer = nodemailer.createTransport(sgTransport(options));
             </tbody>
             </table><!-- End -->
             </body>`,
-              }
-  
-          mailer.sendMail(email, function(err, res) {
-            if (err) { 
-                console.log(err);
-                res.json({isSuccessful: false, hasError: err})
+          };
 
-            }
-            else console.log('email sent to', userEmail);
-          
+          mailer.sendMail(email, function (err, res) {
+            if (err) {
+              console.log(err);
+              res.json({ isSuccessful: false, hasError: err });
+            } else console.log("email sent to", userEmail);
           });
-          res.json({isSuccessful: true, hasError: 'Message sent successfully'})
-          }
-          else {
-            res.json({isSuccessful: false, hasError: 'User does not exist'}) 
-          }
-          
+          res.json({
+            isSuccessful: true,
+            hasError: "Message sent successfully",
+          });
         } else {
-          res.json({isSuccessful: failed, hasError: 'Something bad happened'}) 
-        }
-
-         
-      } 
-      
-    } catch (error) {
-      res.json({isSuccessful: false, hasError: 'Something bad happened'})
-      console.log(error.message);
-      mssql.close;
-    }
-  });
-
-  const changePassword = asyncHandler(async (req, res) => {
-    let userEmail = req.body.userEmail;
-    let refNo = req.body.refNo;
-    let password = req.body.password;
-    let confpassword = req.body.confirmPassword;
-    let pool = await mssql.connect(sqlConfig);   
-    if(!userEmail || !refNo || !password || !confpassword){
-      res.json({isSuccessful: false, hasError: 'Something happened, make sure you passed all the required fields'});
-    } else if (password !== confpassword){
-      res.json({isSuccessful: false, hasError: 'password does not match with confirm password'});
-    } else {
-      let confirmUser = await pool.request().query(`select * from [dbo].[PasswordRecovery] where ReferenceNo = '${refNo}' AND UserEmail = '${userEmail}'`); 
-      let confirmUserVal =  confirmUser.recordsets[0];
-      console.log('this is the user',confirmUserVal);
-      if(confirmUserVal.length > 0){
-        let updatePassword = await pool.request().query(`UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Pass = '${confpassword}' WHERE Email_id = '${userEmail}'`);
-        if(updatePassword){
-          console.log('this is me',updatePassword);
-        mssql.close;
-        res.json({isSuccessful: true, message: 'Success'});
+          res.json({ isSuccessful: false, hasError: "User does not exist" });
         }
       } else {
-        res.json({isSuccessful: false, hasError: 'User does not exist or incorrect reference number'});
+        res.json({ isSuccessful: failed, hasError: "Something bad happened" });
       }
     }
-      // res.json(record);
-      // res.json({isSuccessful: true})
-      // That's it. AT will then send your SMSs to your Simulators
-      
-    // })
-  });
+  } catch (error) {
+    res.json({ isSuccessful: false, hasError: "Something bad happened" });
+    console.log(error.message);
+    mssql.close;
+  }
+});
 
-  
-  export {sendMailNow, brithdaySMS, sendSMSNow, allTemplates, saveTemplate, singleTemplate, updateTemplate, celebrantsDayMail, passwordRecovery, changePassword};
+const changePassword = asyncHandler(async (req, res) => {
+  let userEmail = req.body.userEmail;
+  let refNo = req.body.refNo;
+  let password = req.body.password;
+  let confpassword = req.body.confirmPassword;
+  let pool = await mssql.connect(sqlConfig);
+  if (!userEmail || !refNo || !password || !confpassword) {
+    res.json({
+      isSuccessful: false,
+      hasError:
+        "Something happened, make sure you passed all the required fields",
+    });
+  } else if (password !== confpassword) {
+    res.json({
+      isSuccessful: false,
+      hasError: "password does not match with confirm password",
+    });
+  } else {
+    let confirmUser = await pool
+      .request()
+      .query(
+        `select * from [dbo].[PasswordRecovery] where ReferenceNo = '${refNo}' AND UserEmail = '${userEmail}'`
+      );
+    let confirmUserVal = confirmUser.recordsets[0];
+    console.log("this is the user", confirmUserVal);
+    if (confirmUserVal.length > 0) {
+      let updatePassword = await pool
+        .request()
+        .query(
+          `UPDATE [dbo].[User_Personal] SET Password = '${password}', Confirm_Pass = '${confpassword}' WHERE Email_id = '${userEmail}'`
+        );
+      if (updatePassword) {
+        console.log("this is me", updatePassword);
+        mssql.close;
+        res.json({ isSuccessful: true, message: "Success" });
+      }
+    } else {
+      res.json({
+        isSuccessful: false,
+        hasError: "User does not exist or incorrect reference number",
+      });
+    }
+  }
+  // res.json(record);
+  // res.json({isSuccessful: true})
+  // That's it. AT will then send your SMSs to your Simulators
+
+  // })
+});
+
+export {
+  sendMailNow,
+  brithdaySMS,
+  sendSMSNow,
+  allTemplates,
+  saveTemplate,
+  singleTemplate,
+  updateTemplate,
+  celebrantsDayMail,
+  passwordRecovery,
+  changePassword,
+};
