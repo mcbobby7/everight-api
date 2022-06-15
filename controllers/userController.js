@@ -23,7 +23,7 @@ const allUsers = asyncHandler(async (req, res) => {
     let pool = await mssql.connect(sqlConfig);
     let result = await pool
       .request()
-      .query("select * from dbo.vwPatientDOBInfo");
+      .query("select * from dbo.patient_registration");
     console.log(result);
     res.json(result);
     mssql.close;
@@ -37,7 +37,7 @@ const celebrants = asyncHandler(async (req, res) => {
   try {
     let pool = await mssql.connect(sqlConfig);
     let result = await pool.request()
-      .query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
+      .query(`SELECT * FROM [dbo].[patient_registration]
       WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
       BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(DAY, 1, GETDATE())-1 AS DATE)`);
     console.log(result);
@@ -53,7 +53,7 @@ const weeklycelebrants = asyncHandler(async (req, res) => {
   try {
     let pool = await mssql.connect(sqlConfig);
     let result = await pool.request()
-      .query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
+      .query(`SELECT * FROM [dbo].[patient_registration]
       WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
       BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(WEEK, 1, GETDATE())-1 AS DATE)`);
     console.log(result);
@@ -69,7 +69,7 @@ const monthlycelebrants = asyncHandler(async (req, res) => {
   try {
     let pool = await mssql.connect(sqlConfig);
     let result = await pool.request()
-      .query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
+      .query(`SELECT * FROM [dbo].[patient_registration]
       WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
       BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(MONTH, 1, GETDATE())-1 AS DATE)`);
     console.log(result);
@@ -142,27 +142,27 @@ const generatedUsers = asyncHandler(async (req, res) => {
       for (let i = 0; i < paramVal.length; i++) {
         if (i == 0) {
           if (paramVal[i] == minYearOfBirth) {
-            newVar = newVar + `DateOfBirth >= '${paramVal[i]}'`;
+            newVar = newVar + `date_of_birth >= '${paramVal[i]}'`;
           } else if (paramVal[i] == maxYearOfBirth) {
-            newVar = newVar + `DateOfBirth <= '${paramVal[i]}'`;
+            newVar = newVar + `date_of_birth <= '${paramVal[i]}'`;
           } else if (paramVal[i] == gender) {
-            newVar = newVar + `Gender = '${paramVal[i]}'`;
+            newVar = newVar + `sex = '${paramVal[i]}'`;
           } else if (paramVal[i] == startDate) {
-            newVar = newVar + `RegisteredOn >= '${paramVal[i]}'`;
+            newVar = newVar + `registration_date >= '${paramVal[i]}'`;
           } else if (paramVal[i] == endDate) {
-            newVar = newVar + `RegisteredOn <= '${paramVal[i]}'`;
+            newVar = newVar + `registration_date <= '${paramVal[i]}'`;
           }
         } else {
           if (paramVal[i] == minYearOfBirth) {
-            newVar = newVar + ` AND DateOfBirth >= '${paramVal[i]}'`;
+            newVar = newVar + ` AND date_of_birth >= '${paramVal[i]}'`;
           } else if (paramVal[i] == maxYearOfBirth) {
-            newVar = newVar + ` AND DateOfBirth <= '${paramVal[i]}'`;
+            newVar = newVar + ` AND date_of_birth <= '${paramVal[i]}'`;
           } else if (paramVal[i] == gender) {
-            newVar = newVar + ` AND Gender = '${paramVal[i]}'`;
+            newVar = newVar + ` AND sex = '${paramVal[i]}'`;
           } else if (paramVal[i] == startDate) {
-            newVar = newVar + ` AND RegisteredOn >= '${paramVal[i]}'`;
+            newVar = newVar + ` AND registration_date >= '${paramVal[i]}'`;
           } else if (paramVal[i] == endDate) {
-            newVar = newVar + ` AND RegisteredOn <= '${paramVal[i]}'`;
+            newVar = newVar + ` AND registration_date <= '${paramVal[i]}'`;
           }
         }
       }
@@ -170,12 +170,14 @@ const generatedUsers = asyncHandler(async (req, res) => {
 
       let result = await pool
         .request()
-        .query(`SELECT * FROM [dbo].[vwPatientDOBInfo] where ${newVar}`);
+        .query(`SELECT * FROM [dbo].[patient_registration] where ${newVar}`);
       res.json(result);
       mssql.close;
     }
   } catch (error) {
     console.log("See the error", error.message);
+    res.json({ recordset: [], hasError: true });
+
     mssql.close;
   }
 });

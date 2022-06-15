@@ -7,21 +7,31 @@ import sendNotifications from "./routers/sendNotifications.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.cjs";
 import cors from "cors";
+import bodyParser from "body-parser";
+
 const app = express();
 
-app.use(cors({
-    origin: '*',
+app.use(
+  cors({
+    origin: "*",
     // methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
-}));
+  })
+);
 
 dotenv.config();
 
-
-
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(
+  bodyParser.urlencoded({
+    limit: "50mb",
+    extended: true,
+    parameterLimit: 50000,
+  })
+);
 app.use(express.json());
 app.use("/api/Users", userRoute);
 app.use("/api/Notifications", sendNotifications);
-app.use(express.static('assets' + '/images'))
+app.use(express.static("assets" + "/images"));
 
 // app.use("/api/getit", getReceipts);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -42,8 +52,6 @@ app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 //         mssql.close;
 //         // res.json({isSuccessful: true})
 // });
-
-
 
 const sqlConfig = {
   user: "superdbuser",

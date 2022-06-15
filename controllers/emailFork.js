@@ -11,7 +11,6 @@ import axios from "axios";
 
 process.send("ready");
 process.on("message", (message) => {
-  console.log(message);
   sendEmail(message.userData, message.messageId, message.senderName);
 });
 const sqlConfig = {
@@ -32,9 +31,6 @@ const sqlConfig = {
 };
 
 const sendEmail = async (userData, messageId, senderName) => {
-  console.log("working");
-  console.log("Here is your data", userData);
-
   try {
     let pool = await mssql.connect(sqlConfig);
     let messageTemp = await pool
@@ -42,7 +38,6 @@ const sendEmail = async (userData, messageId, senderName) => {
       .query(`select * from [dbo].[MessageTemplates] where Id = ${messageId}`);
     let messageContent = messageTemp.recordset[0].Body;
 
-    console.log("See your message template:", messageTemp);
     process.send("confirm");
     for (let i = 0; i < userData.length; i++) {
       if (userData[i].EmailAddress) {
@@ -59,44 +54,35 @@ const sendEmail = async (userData, messageId, senderName) => {
           .replace("[[age]]", age)
           .replace("[[sex]]", gender)
           .replace("[[DOB]]", DOB);
-        console.log(messageContent);
         if (senderName === "email") {
           const body = {
             receiver: userData[i].EmailAddress,
             msg: messageContent,
             subject: messageTemp.recordset[0].Title,
           };
-          console.log("email", body);
 
-          axios
+          await axios
             .post("http://portal.everightlab.com/notification/sendemail", body)
-            .then((response) => {
-              console.log(response);
-            })
+            .then((response) => {})
             .catch((error) => {
               console.log(error);
             });
         } else {
           const body = {
-            phoneno: "0" + userData[i].PhoneNo.substring(3),
+            phoneno: userData[i].PhoneNo,
             msg: messageContent.replace(/<[^>]*>?/gm, ""),
           };
-          console.log("phone", body);
-          axios
+          await axios
             .post("http://portal.everightlab.com/notification/sendsms", body)
-            .then((response) => {
-              console.log(response);
-            })
+            .then((response) => {})
             .catch((error) => {
               console.log(error);
             });
         }
       }
-      process.exit(1);
-      return true;
     }
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     mssql.close;
     process.send("error");
     return false;

@@ -193,7 +193,6 @@ const sendMailNow = asyncHandler(async (req, res) => {
 
   child.on("message", (message) => {
     if (message === "ready") {
-      console.log("Returning /total results");
       child.send({ messageId, userData, senderName });
     } else if (message === "confirm") {
       res.json({
@@ -211,6 +210,10 @@ const sendMailNow = asyncHandler(async (req, res) => {
 // const bodyParser = require('body-parser');
 
 const credentials = {
+  apiKey: "012960fc8cad6546d2a9e790219cd034602ae9df0bb747c5d188064d840f7f91",
+  username: "sandbox", // username is sandbox for sandbox applications
+};
+const sendSMSNow = {
   apiKey: "012960fc8cad6546d2a9e790219cd034602ae9df0bb747c5d188064d840f7f91",
   username: "sandbox", // username is sandbox for sandbox applications
 };
@@ -233,14 +236,12 @@ const brithdaySMS = asyncHandler(async (req, res) => {
     WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
     BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(DAY, 1, GETDATE())-1 AS DATE)`);
   mssql.close;
-  console.log("Here is your result", result.recordset);
   let record = result.recordset;
 
   // create const options with fields to and message
   for (let i = 0; i < record.length; i++) {
     let name = userData[i].name;
     let message = messageTemp.replace("[[name]]", name);
-    console.log("Here is your message body:", message);
     let PhoneNumber = "+234".concat(record[i].PhoneNo);
     const options = {
       to: [PhoneNumber],
@@ -250,18 +251,14 @@ const brithdaySMS = asyncHandler(async (req, res) => {
       retryDurationInHours: 12,
     };
 
-    console.log("sent boss:", PhoneNumber);
-
     sms
       .send(options)
       .then((info) => {
         // return information from Africa's Talking
-        console.log("Messeage sent to:", PhoneNumber);
       })
       .catch((err) => {
         console.log(err);
       });
-    console.log("SMS sent to", PhoneNumber);
   }
 
   res.json(record);
@@ -273,58 +270,6 @@ const brithdaySMS = asyncHandler(async (req, res) => {
 
 const test = asyncHandler(async (req, res) => {
   let date = moment(new Date()).format("YYYY");
-  console.log(date);
-});
-
-const sendSMSNow = asyncHandler(async (req, res) => {
-  let messageId = req.body.templateId;
-  let userData = req.body.UsersData;
-  let senderName = req.body.senderName;
-  let pool = await mssql.connect(sqlConfig);
-  let messageTemp = await pool
-    .request()
-    .query(`select Body from [dbo].[MessageTemplates] where Id = ${messageId}`);
-  mssql.close;
-  // create const options with fields to and message
-  for (let i = 0; i < userData.length; i++) {
-    if (userData[i].PhoneNumber) {
-      let name = userData[i].name;
-      let age = userData[i].age;
-      let gender = userData[i].gender;
-      let message = messageTemp
-        .replace("[[name]]", name)
-        .replace("[[age]]", age)
-        .replace("[[gender]]", gender);
-      let PhoneNumber = "+234".concat(userData[i].PhoneNo);
-      const options = {
-        to: [PhoneNumber],
-        message: message || "Happy birthday",
-        shortCode: senderName,
-        keyword: " ", // set your premium keyword
-        retryDurationInHours: 12,
-      };
-
-      console.log("sent boss:", PhoneNumber);
-
-      sms
-        .send(options)
-        .then((info) => {
-          // return information from Africa's Talking
-          console.log("Messeage sent to:", PhoneNumber);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-      console.log("SMS sent to", PhoneNumber);
-    } else
-      res.json({ isSuccessful: false, hasError: "Something bad happened" });
-  }
-
-  // res.json(record);
-  res.json({ isSuccessful: true });
-  // That's it. AT will then send your SMSs to your Simulators
-
-  // })
 });
 
 const saveTemplate = asyncHandler(async (req, res) => {
