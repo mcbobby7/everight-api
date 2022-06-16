@@ -1,22 +1,7 @@
 import asyncHandler from "express-async-handler";
 import mssql from "mssql";
 import moment from "moment";
-const sqlConfig = {
-  user: "superdbuser",
-  password: "J@p@n123",
-  database: "hmsdb",
-  server: "mssql-35101-0.cloudclusters.net",
-  port: 35101,
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000,
-  },
-  options: {
-    encrypt: true, // for azure
-    trustServerCertificate: true,
-  },
-};
+import { sqlConfig } from "../database.js";
 
 const allUsers = asyncHandler(async (req, res) => {
   try {

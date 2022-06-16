@@ -1,11 +1,8 @@
 import nodemailer from "nodemailer";
 import sgTransport from "nodemailer-sendgrid-transport";
-// import asyncHandler from "express-async-handler";
+import { sqlConfig } from "../database.js";
 import mssql from "mssql";
-// import bodyParser from "body-parser";
-// import express from "express";
-// import { createRequire } from "module";
-// import Joi from "joi";
+
 import moment from "moment";
 import axios from "axios";
 
@@ -13,30 +10,19 @@ process.send("ready");
 process.on("message", (message) => {
   sendEmail(message.userData, message.messageId, message.senderName);
 });
-const sqlConfig = {
-  user: "superdbuser",
-  password: "J@p@n123",
-  database: "hmsdb",
-  server: "mssql-35101-0.cloudclusters.net",
-  port: 35101,
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000,
-  },
-  options: {
-    encrypt: true, // for azure
-    trustServerCertificate: true,
-  },
-};
 
 const sendEmail = async (userData, messageId, senderName) => {
   try {
     let pool = await mssql.connect(sqlConfig);
     let messageTemp = await pool
       .request()
-      .query(`select * from [dbo].[MessageTemplates] where Id = ${messageId}`);
-    let messageContent = messageTemp.recordset[0].Body;
+      .query(`select * from [dbo].[DocTemplates] where Id = ${messageId}`);
+    let messageContent;
+    if (messageTemp.recordset.length > 0) {
+      messageContent = messageTemp.recordset[0].Template_Text;
+    } else {
+      process.send("error");
+    }
 
     process.send("confirm");
     for (let i = 0; i < userData.length; i++) {
@@ -48,17 +34,16 @@ const sendEmail = async (userData, messageId, senderName) => {
         let DOB = moment(new Date(userData[i].DateOfBirth)).format(
           "DD-MM-YYYY"
         );
-
         messageContent = messageContent
-          .replace("[[name]]", name)
-          .replace("[[age]]", age)
-          .replace("[[sex]]", gender)
-          .replace("[[DOB]]", DOB);
+          .replace("[[name]]", name, 8)
+          .replace("[[age]]", age, 8)
+          .replace("[[sex]]", gender, 8)
+          .replace("[[DOB]]", DOB, 8);
         if (senderName === "email") {
           const body = {
             receiver: userData[i].EmailAddress,
             msg: messageContent,
-            subject: messageTemp.recordset[0].Title,
+            subject: messageTemp.recordset[0].Name,
           };
 
           await axios

@@ -9,56 +9,25 @@ import Joi from "joi";
 import moment from "moment";
 import axios from "axios";
 import { fork } from "child_process";
+import { sqlConfig } from "../database.js";
 
-//Send in the midnight
-// schedule.scheduleJob('0 0 * * *', () => {})
 const require = createRequire(import.meta.url);
 const app = express();
-
-const sqlConfig = {
-  user: "superdbuser",
-  password: "J@p@n123",
-  database: "hmsdb",
-  server: "mssql-35101-0.cloudclusters.net",
-  port: 35101,
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000,
-  },
-  options: {
-    encrypt: true, // for azure
-    trustServerCertificate: true,
-  },
-};
-// api key https://sendgrid.com/docs/Classroom/Send/api_keys.html
-var options = {
-  auth: {
-    api_key:
-      "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",
-  },
-};
-
-// or
-
-// username + password
-var options = {
-  auth: {
-    api_user: "philip",
-    api_key: "@Naopemipo08136895580",
-  },
-};
 
 const allTemplates = asyncHandler(async (req, res) => {
   try {
     let pool = await mssql.connect(sqlConfig);
     let result = await pool
       .request()
-      .query("select * from [dbo].[MessageTemplates]");
-    console.log(result);
-    res.json(result);
+      .query("select * from [dbo].[DocTemplates] where Mode = 'EMAIL'");
+    if (result.recordset.length < 1) {
+      res.json({ message: "No record found", hasError: true });
+    } else {
+      res.json({ result: result.recordset, hasError: false });
+    }
     mssql.close;
   } catch (error) {
+    res.json({ message: "Error fetching data", hasError: true });
     console.log(error.message);
     mssql.close;
   }
@@ -91,7 +60,7 @@ const updateTemplate = asyncHandler(async (req, res) => {
     let result = await pool
       .request()
       .query(
-        `UPDATE [dbo].[MessageTemplates] SET Title = '${title}', Body = '${msgBody}' WHERE Id = ${messageId}`
+        `UPDATE [dbo].[DocTemplates] SET Name = '${title}', Template_Text = '${msgBody}' WHERE Id = ${messageId}`
       );
     console.log(result);
     res.json(result);
@@ -208,97 +177,6 @@ const sendMailNow = asyncHandler(async (req, res) => {
 });
 
 // const bodyParser = require('body-parser');
-
-const credentials = {
-  apiKey: "012960fc8cad6546d2a9e790219cd034602ae9df0bb747c5d188064d840f7f91",
-  username: "sandbox", // username is sandbox for sandbox applications
-};
-const sendSMSNow = {
-  apiKey: "012960fc8cad6546d2a9e790219cd034602ae9df0bb747c5d188064d840f7f91",
-  username: "sandbox", // username is sandbox for sandbox applications
-};
-
-const AT = require("africastalking")(credentials);
-const sms = AT.SMS;
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-const brithdaySMS = asyncHandler(async (req, res) => {
-  let pool = await mssql.connect(sqlConfig);
-  let messageTemp = await pool
-    .request()
-    .query(
-      `select Body from [dbo].[MessageTemplates] where title = 'Birthday'`
-    );
-  let result = await pool.request()
-    .query(`SELECT * FROM [dbo].[vwPatientDOBInfo]
-    WHERE DATEADD (YEAR, DATEPART(YEAR, GETDATE()) - DATEPART(YEAR, DateOfBirth), DateOfBirth)
-    BETWEEN CAST(GETDATE() AS DATE) AND CAST(DATEADD(DAY, 1, GETDATE())-1 AS DATE)`);
-  mssql.close;
-  let record = result.recordset;
-
-  // create const options with fields to and message
-  for (let i = 0; i < record.length; i++) {
-    let name = userData[i].name;
-    let message = messageTemp.replace("[[name]]", name);
-    let PhoneNumber = "+234".concat(record[i].PhoneNo);
-    const options = {
-      to: [PhoneNumber],
-      message: message || "Happy birthday",
-      shortCode: "HMS",
-      keyword: "Happy Birthday", // set your premium keyword
-      retryDurationInHours: 12,
-    };
-
-    sms
-      .send(options)
-      .then((info) => {
-        // return information from Africa's Talking
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
-  res.json(record);
-  // res.json({isSuccessful: true})
-  // That's it. AT will then send your SMSs to your Simulators
-
-  // })
-});
-
-const test = asyncHandler(async (req, res) => {
-  let date = moment(new Date()).format("YYYY");
-});
-
-const saveTemplate = asyncHandler(async (req, res) => {
-  let tempTitle = req.body.title;
-  let tempBody = req.body.messageBody;
-  console.log("here is the template sent", tempTitle, tempBody);
-  try {
-    if (tempBody && tempTitle) {
-      let pool = await mssql.connect(sqlConfig);
-      let result = await pool
-        .request()
-        .query(
-          `INSERT into [dbo].[MessageTemplates](Title, Body) VALUES('${tempTitle}','${tempBody}')`
-        );
-      mssql.close;
-      console.log("Here is your new template", result);
-      res.json({ hasError: false, message: "Record saved sucessfully" });
-    } else {
-      res.json({
-        isSuccessful: false,
-        hasError: "Make sure you pass the body correctly",
-      });
-    }
-  } catch (error) {
-    res.json({ isSuccessful: false, hasError: "Something happened" });
-    console.log(error.message);
-    mssql.close;
-  }
-});
 
 const passwordRecovery = asyncHandler(async (req, res) => {
   let userEmail = req.body.userEmail;
@@ -579,10 +457,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
 export {
   sendMailNow,
-  brithdaySMS,
-  sendSMSNow,
   allTemplates,
-  saveTemplate,
   singleTemplate,
   updateTemplate,
   celebrantsDayMail,
